@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="株プランナー" />
+  <meta name="theme-color" content="#1a1a2e" />
+  <title>株トレード計画</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, 'Helvetica Neue', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    .topbar {
+      background: #1a1a2e;
+      padding: env(safe-area-inset-top, 16px) 16px 12px;
+      padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topbar-title { color: #fff; font-size: 17px; font-weight: 600; flex: 1; }
+    .topbar-sub { color: rgba(255,255,255,0.45); font-size: 11px; margin-top: 1px; }
+
+    .body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+    }
+
+    .input-row { display: flex; gap: 8px; }
+    .input-row input {
+      flex: 1;
+      font-size: 16px;
+      padding: 0 13px;
+      height: 44px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fff;
+      color: #1a1a1a;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .input-row input:focus { border-color: #888; }
+    .reset-btn {
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #555;
+      white-space: nowrap;
+    }
+    .reset-btn:active { background: #f0f0f0; }
+
+    .name-input {
+      width: 100%;
+      font-size: 15px;
+      padding: 0 13px;
+      height: 40px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fff;
+      color: #1a1a1a;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .name-input:focus { border-color: #888; }
+
+    .profit-card {
+      background: #fff0f0;
+      border: 1px solid #f5bcbc;
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    .buy-card {
+      background: #fff;
+      border: 2px solid #bbb;
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+    .loss-card {
+      background: #eef4fb;
+      border: 1px solid #aecde8;
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .card-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .profit-card .card-tag { color: #a93226; }
+    .buy-card .card-tag { color: #666; }
+    .loss-card .card-tag { color: #1a6fa8; }
+
+    .price-big {
+      font-size: 30px;
+      font-weight: 600;
+      margin-bottom: 3px;
+      letter-spacing: -0.5px;
+    }
+    .profit-card .price-big { color: #c0392b; }
+    .buy-card .price-big { color: #1a1a1a; }
+    .loss-card .price-big { color: #1a6fa8; }
+
+    .price-input-direct {
+      font-size: 28px;
+      font-weight: 600;
+      width: 100%;
+      border: none;
+      border-bottom: 2px solid #ccc;
+      background: transparent;
+      color: #1a1a1a;
+      padding: 0 0 2px;
+      outline: none;
+      letter-spacing: -0.5px;
+      -webkit-appearance: none;
+    }
+    .price-input-direct:focus { border-bottom-color: #555; }
+
+    .sub {
+      font-size: 13px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .slider-block {
+      background: rgba(0,0,0,0.05);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-top: 10px;
+    }
+    .profit-card .slider-block { background: rgba(192,57,43,0.07); }
+    .loss-card .slider-block { background: rgba(26,111,168,0.07); }
+
+    .slider-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .slider-label { font-size: 12px; color: #888; }
+    .slider-val { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+
+    input[type=range] {
+      width: 100%;
+      height: 4px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #ccc;
+      border-radius: 2px;
+      outline: none;
+    }
+    .profit-card input[type=range] { accent-color: #c0392b; }
+    .loss-card input[type=range] { accent-color: #1a6fa8; }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #bbb;
+      cursor: pointer;
+    }
+    .profit-card input[type=range]::-webkit-slider-thumb { border-color: #c0392b; }
+    .loss-card input[type=range]::-webkit-slider-thumb { border-color: #1a6fa8; }
+
+    .slider-ends {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #bbb;
+      margin-top: 4px;
+    }
+
+    .hint {
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      padding: 4px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">株トレード計画</div>
+      <div class="topbar-sub">Trade Planner</div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <div class="input-row">
+      <input type="text" id="codeInput" placeholder="銘柄コード（例: 7203）" maxlength="6" inputmode="numeric" />
+      <button class="reset-btn" onclick="clearAll()">リセット</button>
+    </div>
+
+    <input class="name-input" type="text" id="nameInput" placeholder="銘柄名（例: トヨタ自動車）" />
+
+    <div class="profit-card">
+      <div class="card-tag">↑ 利益確定ライン</div>
+      <div class="price-big" id="profitPrice">—</div>
+      <div class="sub" id="profitSub">購入価格を入力してください</div>
+      <div class="slider-block">
+        <div class="slider-row">
+          <span class="slider-label">利益確定</span>
+          <span class="slider-val" id="profitVal">+15%</span>
+        </div>
+        <input type="range" id="profitSlider" min="1" max="50" step="1" value="15" oninput="onSlide()" />
+        <div class="slider-ends"><span>+1%</span><span>+50%</span></div>
+      </div>
+    </div>
+
+    <div class="buy-card">
+      <div class="card-tag">◎ 購入目標価格</div>
+      <input class="price-input-direct" type="number" id="buyInput"
+        placeholder="価格を入力（円）" inputmode="decimal" oninput="onBuyChange()" />
+      <div class="sub" id="buySub">直接入力してください</div>
+    </div>
+
+    <div class="loss-card">
+      <div class="card-tag">↓ 損切りライン</div>
+      <div class="price-big" id="lossPrice">—</div>
+      <div class="sub" id="lossSub">購入価格を入力してください</div>
+      <div class="slider-block">
+        <div class="slider-row">
+          <span class="slider-label">損切り</span>
+          <span class="slider-val" id="lossVal">-5%</span>
+        </div>
+        <input type="range" id="lossSlider" min="1" max="30" step="1" value="5" oninput="onSlide()" />
+        <div class="slider-ends"><span>-1%</span><span>-30%</span></div>
+      </div>
+    </div>
+
+    <div class="hint">購入目標価格に直接入力するとリアルタイム計算されます</div>
+
+  </div>
+
+  <script>
+    function fmt(n) {
+      return Math.round(n).toLocaleString('ja-JP') + '円';
+    }
+    function fmtDiff(n) {
+      return (n >= 0 ? '+' : '') + Math.round(n).toLocaleString('ja-JP') + '円';
+    }
+
+    function onBuyChange() { recalc(); }
+
+    function onSlide() {
+      document.getElementById('profitVal').textContent = '+' + document.getElementById('profitSlider').value + '%';
+      document.getElementById('lossVal').textContent = '-' + document.getElementById('lossSlider').value + '%';
+      recalc();
+    }
+
+    function recalc() {
+      const raw = document.getElementById('buyInput').value;
+      const buy = parseFloat(raw);
+      if (!raw || isNaN(buy) || buy <= 0) {
+        document.getElementById('profitPrice').textContent = '—';
+        document.getElementById('lossPrice').textContent = '—';
+        document.getElementById('profitSub').textContent = '購入価格を入力してください';
+        document.getElementById('lossSub').textContent = '購入価格を入力してください';
+        document.getElementById('buySub').textContent = '直接入力してください';
+        return;
+      }
+      const pp = parseInt(document.getElementById('profitSlider').value);
+      const lp = parseInt(document.getElementById('lossSlider').value);
+      const profitPrice = buy * (1 + pp / 100);
+      const lossPrice = buy * (1 - lp / 100);
+      document.getElementById('profitPrice').textContent = fmt(profitPrice);
+      document.getElementById('profitSub').textContent = '+' + pp + '% ／ 利益 ' + fmtDiff(profitPrice - buy);
+      document.getElementById('lossPrice').textContent = fmt(lossPrice);
+      document.getElementById('lossSub').textContent = '-' + lp + '% ／ 損失 ' + fmtDiff(lossPrice - buy);
+      document.getElementById('buySub').textContent = fmt(buy) + ' で計算中';
+    }
+
+    function clearAll() {
+      document.getElementById('codeInput').value = '';
+      document.getElementById('nameInput').value = '';
+      document.getElementById('buyInput').value = '';
+      document.getElementById('profitSlider').value = 15;
+      document.getElementById('lossSlider').value = 5;
+      document.getElementById('profitVal').textContent = '+15%';
+      document.getElementById('lossVal').textContent = '-5%';
+      recalc();
+      document.getElementById('codeInput').focus();
+    }
+
+    document.getElementById('buyInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') e.target.blur();
+    });
+  </script>
+
+</body>
+</html>
